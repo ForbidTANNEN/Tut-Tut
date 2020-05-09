@@ -302,3 +302,14 @@ span {
   position: absolute;
   line-height: 25px;
 }
+
+.footer{
+  text-align: center;
+  background: #00a8cc;
+  color: white;
+  margin-top: 2%;
+}
+
+.footerText{
+  padding: 4% 10%;
+}
