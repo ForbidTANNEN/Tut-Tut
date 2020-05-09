@@ -33,7 +33,6 @@ const chris = new Account({
 });
 
 
-
 app.get("/", function(req, res) {
   res.sendFile(__dirname + "/index.html");
 });
@@ -44,17 +43,21 @@ app.get("/login", function(req, res) {
 
 
 app.post("/login", function(req, res){
-  var email = req.body.email;
+  var email = _.capitalize(req.body.email);
   var password = req.body.password;
-  Account.find({email: email}, function(err, foundAccounts){
+  Account.findOne({email: email}, function(err, foundAccounts){
     if(err){
       console.log(err);
     }
-    else if(foundAccounts.length === 0){
-      console.log("NULLL");
+    else if(foundAccounts === null){
+      console.log("No Account Found");
     }
     else{
-      console.log(foundAccounts);
+      if(password == foundAccounts.password){
+        console.log("Correct Username and password");
+      }else{
+        console.log("Wrong Pass Right Email: Pass entered: "+foundAccounts.password);
+      }
     }
   });
 });
