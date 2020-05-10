@@ -48,15 +48,12 @@
 </head>
 
 <body class="text-center">
-  <form class="form-signin" method="post" action="/signup">
+  <form class="form-signin" method="post" action="/login">
     <img class="mb-4" src="images/Logo.png" width="125" height="125">
-    <h1 class="h3 mb-3 font-weight-normal">Sign up for an account!</h1>
-
-    <input type="email" name="email" class="form-control top" placeholder="Email" required autofocus autocomplete="off">
-    <input type="password" name="password" class="form-control middle" placeholder="Password" required autocomplete="off">
-    <input type="text" name="age" class="form-control middle" placeholder="Age" required autocomplete="off">
-    <input type="text" name="f_name" class="form-control middle" placeholder="First Name" required autocomplete="off">
-    <input type="text" name="l_name" class="form-control bottom" placeholder="Last Name" required autocomplete="off">
+    <h1 class="h3 mb-3 font-weight-normal">Sign in to your account!</h1>
+    <p><%=loginFailure%></p>
+    <input type="username" name="username" class="form-control top" placeholder="Email" required autofocus autocomplete="off">
+    <input type="password" name="password" class="form-control bottom" placeholder="Password" required autocomplete="off">
 
     <button class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
     <p class="mt-5 mb-3 text-muted">&copy; Tannen Hall</p>

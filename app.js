@@ -2,30 +2,49 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const session = require('express-session');
+const passport = require("passport");
+const passportLocalMongoose = require("passport-local-mongoose");
 app.use(bodyParser.urlencoded({
   extended: true
 }));
 const https = require("https");
+app.set('view engine', 'ejs');
 var _ = require('lodash');
-var sha256 = require('js-sha256');
 
 app.use(express.static("public"));
+app.use(session({
+  secret: "Our Little Secret",
+  resave: false,
+  saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 mongoose.connect("mongodb://localhost:27017/tut", {
-  useNewUrlParser: true
+  useNewUrlParser: true,
+   useUnifiedTopology: true
 });
+
+mongoose.set("useCreateIndex", true);
 
 // ACCount
 
-const accountSchema = {
-  email: String,
+const userSchema = new mongoose.Schema({
+  username: String,
   password: String,
-  age: String,
-  f_name: String,
-  l_name: String
-};
+  age: Number
+});
 
-const Account = mongoose.model("Account", accountSchema);
+userSchema.plugin(passportLocalMongoose);
+
+const User = mongoose.model("User", userSchema);
+
+passport.use(User.createStrategy());
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 
 app.get("/", function(req, res) {
@@ -33,49 +52,69 @@ app.get("/", function(req, res) {
 });
 
 app.get("/login", function(req, res) {
-  res.sendFile(__dirname + "/login.html");
+  res.render("login", {loginFailure: ""});
 });
 
 app.get("/signup", function(req, res) {
-  res.sendFile(__dirname + "/signUp.html");
+  res.render("signUp", {signupFailure: ""});
+});
+
+app.get("/secrets", function(req, res){
+  if(req.isAuthenticated()){
+    res.sendFile(__dirname + "/loggedIn.html")
+    console.log(req.user);
+  }else{
+    res.redirect("/login");
+  }
 });
 
 app.post("/signup", function(req, res){
-  var s_email = _.capitalize(req.body.email);
-  var s_password = sha256("4i5u4kbfjg" + req.body.password);
-  var s_age = req.body.age;
-  var s_f_name = req.body.f_name;
-  var s_l_name = req.body.l_name;
-  const newAcc = new Account({
-    email: s_email,
-    password: s_password,
-    age: s_age,
-    f_name: s_f_name,
-    l_name: s_l_name
-  });
-  newAcc.save();
-  res.redirect("/login");
+  User.findOne({username: req.body.username}, function(err, foundUsers){
+      if(foundUsers === null){
+        User.register({username: req.body.username, age: req.body.age}, req.body.password, function(err, user){
+          if(err){
+            console.log(err);
+            res.redirect("/signup");
+          }else{
+            passport.authenticate("local")(req, res, function(){
+              res.redirect("/secrets");
+            });
+          }
+        })
+    }else{
+      console.log("Already have account with that email");
+      res.render("signUp", {signupFailure: "That email is already asigned to an email"})
+    }
+})
 });
 
+app.post("/logout", function(req, res){
+  req.logout();
+  res.redirect("/");
+});
 
 app.post("/login", function(req, res){
-  var email = _.capitalize(req.body.email);
-  var password = sha256("4i5u4kbfjg" + req.body.password);
-  Account.findOne({email: email}, function(err, foundAccounts){
-    if(err){
-      console.log(err);
-    }
-    else if(foundAccounts === null){
-      console.log("No Account Found");
-    }
-    else{
-      if(password == foundAccounts.password){
-        console.log("Correct Username and password");
-      }else{
-        console.log("Wrong Pass Right Email: Pass entered: "+foundAccounts.password);
-      }
-    }
+  const user = new User({
+    username: req.body.username,
+    password: req.body.password
   });
+
+  User.findOne({username: req.body.username}, function(err, foundUsers){
+    if(foundUsers === null){
+      console.log("Wrong Username or password");
+      res.render("login", {loginFailure: "Wrong username or password"})
+    }else{
+      req.login(user, function(err){
+        if(err){
+          console.log(err);
+        }else{
+          passport.authenticate("local")(req, res, function(){
+            res.redirect("/secrets");
+          })
+        }
+      })
+    }
+});
 });
 
     app.listen(process.env.PORT || 3000, function() {
