@@ -18,19 +18,13 @@ mongoose.connect("mongodb://localhost:27017/tut", {
 
 const accountSchema = {
   email: String,
-  password: String
+  password: String,
+  age: String,
+  f_name: String,
+  l_name: String
 };
 
 const Account = mongoose.model("Account", accountSchema);
-
-const tannen = new Account({
-  email: "Tannenhall@yahoo.com",
-  password: "Bentley1@"
-});
-const chris = new Account({
-  email: "Chrisjhall@yahoo.com",
-  password: "dad123"
-});
 
 
 app.get("/", function(req, res) {
@@ -39,6 +33,27 @@ app.get("/", function(req, res) {
 
 app.get("/login", function(req, res) {
   res.sendFile(__dirname + "/login.html");
+});
+
+app.get("/signup", function(req, res) {
+  res.sendFile(__dirname + "/signUp.html");
+});
+
+app.post("/signup", function(req, res){
+  var s_email = _.capitalize(req.body.email);
+  var s_password = req.body.password;
+  var s_age = req.body.age;
+  var s_f_name = req.body.f_name;
+  var s_l_name = req.body.l_name;
+  const newAcc = new Account({
+    email: s_email,
+    password: s_password,
+    age: s_age,
+    f_name: s_f_name,
+    l_name: s_l_name
+  });
+  newAcc.save();
+  res.redirect("/login");
 });
 
 
