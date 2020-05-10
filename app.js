@@ -7,6 +7,7 @@ app.use(bodyParser.urlencoded({
 }));
 const https = require("https");
 var _ = require('lodash');
+var sha256 = require('js-sha256');
 
 app.use(express.static("public"));
 
@@ -41,7 +42,7 @@ app.get("/signup", function(req, res) {
 
 app.post("/signup", function(req, res){
   var s_email = _.capitalize(req.body.email);
-  var s_password = req.body.password;
+  var s_password = sha256("4i5u4kbfjg" + req.body.password);
   var s_age = req.body.age;
   var s_f_name = req.body.f_name;
   var s_l_name = req.body.l_name;
@@ -59,7 +60,7 @@ app.post("/signup", function(req, res){
 
 app.post("/login", function(req, res){
   var email = _.capitalize(req.body.email);
-  var password = req.body.password;
+  var password = sha256("4i5u4kbfjg" + req.body.password);
   Account.findOne({email: email}, function(err, foundAccounts){
     if(err){
       console.log(err);
